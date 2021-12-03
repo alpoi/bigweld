@@ -34,7 +34,7 @@ async def kill_bot(context):
         print("Bot terminated")
     else:
         print(f'{context.author} (id: {context.author.id}) attempted to terminate Bigweld.')
-        await context.send(f'{context.author.name} is a fat weenie 😡')
+        await context.send(f'{context.author.name} is a meanie 😡')
 
 @bot.command( name = 'raise' , help = 'Raises discord.DiscordException' )
 async def raise_exception(context):
@@ -44,7 +44,7 @@ async def raise_exception(context):
         raise discord.DiscordException
     else:
         print(f'{context.author} (id: {context.author.id}) attempted to terminate Bigweld.')
-        await context.send(f'{context.author.name} is a fat weenie 😡')
+        await context.send(f'{context.author.name} is a meanie 😡')
 
 @bot.command( name = 'join' , help = 'Bigweld will grace you with his presence.')
 async def join_voice(context):
