@@ -27,7 +27,7 @@ async def on_ready(): # event handler, handles the event when the Bot has establ
 
 @bot.command( name = 'exit' , help = 'Kills Bigweld.' )
 async def kill_bot(context):
-    print(f'command: exit, context: {context}')
+    print(f'command: {context.message}, context: {context.author.name} ({context.author.id}) in {context.channel.name} ({context.channel.id})')
     if str(context.author.id) == ADMIN:
         await context.send('Bye bye! 👋🤖')
         await bot.close()
@@ -38,7 +38,7 @@ async def kill_bot(context):
 
 @bot.command( name = 'raise' , help = 'Raises discord.DiscordException' )
 async def raise_exception(context):
-    print(f'command: raise, context: {context}')
+    print(f'command: {context.message}, context: {context.author.name} ({context.author.id}) in {context.channel.name} ({context.channel.id})')
     if str(context.author.id) == ADMIN:
         await context.send('Exception raised!')
         raise discord.DiscordException
@@ -48,7 +48,7 @@ async def raise_exception(context):
 
 @bot.command( name = 'join' , help = 'Bigweld will grace you with his presence.')
 async def join_voice(context):
-    print(f'command: join, context: {context}')
+    print(f'command: {context.message}, context: {context.author.name} ({context.author.id}) in {context.channel.name} ({context.channel.id})')
     invoker_voice_state = context.author.voice
     if invoker_voice_state == None:
         await context.send(f'You must join a voice channel before summoning me!')
