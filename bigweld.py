@@ -14,7 +14,7 @@ TOKEN = os.getenv('DISCORD_TOKEN') # gets DISCORD_TOKEN from .env
 GUILD = os.getenv('DISCORD_GUILD') # gets DISCORD_GUILD from .env
 ADMIN = os.getenv('ADMIN_ID')
 
-client = discord.Client() # Client() handles events, tracks state, interacts with Discord APIs
+# client = discord.Client() # Client() handles events, tracks state, interacts with Discord APIs
 bot = commands.Bot( command_prefix = '-' , strip_after_prefix = 'True') # Bot() behaves similarly
 
 @bot.event
@@ -25,8 +25,8 @@ async def on_ready(): # event handler, handles the event when the Bot has establ
             break
     
     print(
-        f'{bot.user} has connected to the following guild: \n'
-        f'{guild.name} (id: {guild.id})'
+        f'\t{bot.user} has connected to the following guild: \n'
+        f'\t{guild.name} (id: {guild.id})'
     )
 
 @bot.command( name = 'kill' , help = 'Kills Bigweld.' )
@@ -35,11 +35,11 @@ async def kill_bot(context):
     if str(context.author.id) == ADMIN:
         await leave_voice(context)
         await context.send('Oh noooo please don\'t kill me oh n')
-        await bot.logout()
+        # await bot.logout() # deprecated
         await bot.close()
         print("\tBot terminated")
     else:
-        print(f'{context.author} (id: {context.author.id}) attempted to terminate Bigweld.')
+        print(f'\t{context.author} (id: {context.author.id}) attempted to terminate Bigweld.')
         await context.send(f'{context.author.name} is a meanie 😡')
 
 @bot.command( name = 'raise' , help = 'Raises discord.DiscordException' )
@@ -49,7 +49,7 @@ async def raise_exception(context):
         await context.send('Exception raised!')
         raise discord.DiscordException
     else:
-        print(f'{context.author} (id: {context.author.id}) attempted to terminate Bigweld.')
+        print(f'\t{context.author} (id: {context.author.id}) attempted to raise an exception.')
         await context.send(f'{context.author.name} is a meanie 😡')
 
 @bot.command( name = 'join' , help = 'Bigweld will grace you with his presence.')
@@ -79,7 +79,7 @@ async def leave_voice(context):
         await voice.disconnect()
         voice.cleanup()
 
-@bot.command( name = "play" , aliases = ["p"] , help = "Plays audio from a YouTube URL" )
+@bot.command( name = "play" , aliases = ["p"] , help = "Plays audio from a YouTube URL (playlists aren't supported yet)" )
 async def play(context, *, arg):
     try:
         print(f'\tcommand: {context.message.content}, context: {context.author.name} ({context.author.id}) in {context.channel.name} ({context.channel.id})')
@@ -89,8 +89,10 @@ async def play(context, *, arg):
         voice = get(bot.voice_clients, guild = context.guild)
 
         if voice == None:
-            voice = await join_voice(context)
+            await join_voice(context)
             print(voice)
+
+        voice = get(bot.voice_clients, guild = context.guild)
 
         if not voice.is_playing():
             with YoutubeDL(YDL_OPTIONS) as ydl:
@@ -102,15 +104,16 @@ async def play(context, *, arg):
                     video = ydl.extract_info(arg, download = False)
                 URL = video['url']
 
-                await voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
+                voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
                 voice.is_playing()
                 await context.send(f'Now playing: "{video["title"]}"\nurl: {video["webpage_url"]}')
 
         else:
             await context.send("Already playing a song (will make queues a thing soon)")
             return
-    except commands.errors.MissingRequiredArgument:
-        await context.send("Play what... ?")
+
+    except: # commands.errors.MissingRequiredArgument:
+        await context.send("No argument was specified. Did you mean -resume?")
 
 @bot.command( name = "stop" , help = "Stops audio playback")
 async def stop(context):
@@ -129,20 +132,32 @@ async def stop(context):
 async def pause(context):
     print(f'\tcommand: {context.message.content}, context: {context.author.name} ({context.author.id}) in {context.channel.name} ({context.channel.id})')
     voice = get(bot.voice_clients, guild = context.guild)
-    if voice.is_paused():
-        await context.send("Already paused! Did you mean -resume?")
-    else:
-        await voice.pause()
+    try:
+        if voice.is_paused():
+            await context.send("Already paused! Did you mean -resume?")
+        else:
+            voice.pause()
+            await context.send("Audio playback paused")
+    except TypeError as e:
+        # await context.send("Nothing is playing!")
+        print(f"\t{bot.voice_clients}")
+        print(f"\t{e}")
 
 @bot.command( name = "resume" , help = "Resumes audio playback")
 async def resume(context):
     print(f'\tcommand: {context.message.content}, context: {context.author.name} ({context.author.id}) in {context.channel.name} ({context.channel.id})')
     voice = get(bot.voice_clients, guild = context.guild)
-    if not voice.is_paused():
-        await context.send("Already resumed! Did you mean -pause?")
-    else:
-        await voice.resume()
-
+    try:
+        if not voice.is_paused():
+            await context.send("Already resumed! Did you mean -pause?")
+        else:
+            voice.resume()
+            await context.send("Audio playback resumed")
+    except TypeError as e:
+        # await context.send("Nothing is paused!")
+        print(f"\t{bot.voice_clients}")
+        print(f"\t{e}")
+        
 @bot.event
 async def on_error(event, *args, **kwargs):
     with open('err.log', 'a', encoding = "UTF-8") as f:
