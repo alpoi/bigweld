@@ -394,7 +394,7 @@ class Music(commands.Cog):
                 song = Song(source)
 
                 await context.voice_state.songs.put(song)
-                await context.send(embed = discord.Embed(title = f'Added **{str(source)}** to the queue.', colour = discord.Colour.dark_gold())
+                await context.send(embed = discord.Embed(description = f'Added **{source.title}** to the queue.', colour = discord.Colour.dark_gold())
                                                   .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
                                                   )
 
