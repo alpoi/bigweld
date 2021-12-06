@@ -1,10 +1,15 @@
 import asyncio, functools, itertools, discord, youtube_dl, random, math, os, json
 from async_timeout import timeout
 from discord.ext import commands
-from dotenv import load_dotenv
 from sty import ef, fg, rs
 
-load_dotenv()
+LIVE = os.getenv('LIVE')
+
+if LIVE != "REPLIT":
+    from dotenv import load_dotenv
+    load_dotenv()
+else:
+    import keep_alive
 
 happy_bigweld = "https://i.imgur.com/asklay9.png"
 sad_bigweld = "https://i.imgur.com/PIrBkyC.png"
@@ -17,13 +22,16 @@ class Tag: # used to make terminal pretty
 
 is_dev = input(f"{Tag.sys}Dev mode? Y/N: {rs.all}")
 if is_dev == "Y":
-    TOKEN = os.environ.get('DEV_TOKEN')
+    TOKEN = os.getenv('DEV_TOKEN')
 else:
-    TOKEN = os.environ.get('DISCORD_TOKEN')
+    TOKEN = os.getenv('DISCORD_TOKEN')
 
-WORDS = json.loads(os.environ.get('WORDS')) # disallowed words for profanity filter stored in .env
-GUILD = os.environ.get('DISCORD_GUILD')
-ADMIN = os.environ.get('ADMIN_ID')
+if LIVE == "REPLIT":
+    WORDS = os.getenv('WORDS').split(sep = ",")
+else:
+    WORDS = json.loads(os.environ.get('WORDS')) # disallowed words for profanity filter stored in .env
+GUILD = os.getenv('DISCORD_GUILD')
+ADMIN = os.getenv('ADMIN_ID')
 
 class SearchError(Exception):
     pass
@@ -438,6 +446,9 @@ async def on_ready():
     
     print(f'{Tag.sys}{bot.user} has connected to {guild.name} (id: {guild.id}){rs.all}')
         
+if LIVE == "REPLIT":
+    keep_alive.keep_alive()
+
 bot.run(TOKEN)
 
     
