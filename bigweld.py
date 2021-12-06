@@ -1,11 +1,27 @@
-import asyncio, functools, itertools, discord, youtube_dl, random, math, os
+import asyncio, functools, itertools, discord, youtube_dl, random, math, os, json
 from async_timeout import timeout
 from discord.ext import commands
 from dotenv import load_dotenv
+from sty import ef, fg, rs
 
 load_dotenv()
 
-TOKEN = os.environ.get('DISCORD_TOKEN')
+happy_bigweld = "https://i.imgur.com/asklay9.png"
+sad_bigweld = "https://i.imgur.com/PIrBkyC.png"
+
+class Tag: # used to make terminal pretty
+    sys = " "*2 + ef.bold + fg.red + "[SYSTEM]" + rs.bold_dim + " "
+    cmd = " "*2 + ef.bold + fg.green + "[COMMAND]" + rs.bold_dim + " "
+    alert = " "*2 + ef.bold + fg.yellow + "[ALERT]" + rs.bold_dim + " "
+
+
+is_dev = input(f"{Tag.sys}Dev mode? Y/N: {rs.all}")
+if is_dev == "Y":
+    TOKEN = os.environ.get('DEV_TOKEN')
+else:
+    TOKEN = os.environ.get('DISCORD_TOKEN')
+
+WORDS = json.loads(os.environ.get('WORDS')) # disallowed words for profanity filter stored in .env
 GUILD = os.environ.get('DISCORD_GUILD')
 ADMIN = os.environ.get('ADMIN_ID')
 
@@ -117,8 +133,9 @@ class Song:
         self.requester = source.requester
 
     def create_embed(self):
-        embed = (discord.Embed( title = 'Now playing',
-                                description = f'[{self.source.title}]({self.source.url})',
+        embed = (discord.Embed( title = f'{self.source.title}',
+                                url = f'{self.source.url}',
+                                # description = f'[{self.source.title}]({self.source.url})',
                                 colour = discord.Colour.dark_gold())
                 .add_field(name = 'Duration', value = self.source.duration)
                 .add_field(name = 'Requested by', value = self.requester.mention)
@@ -249,17 +266,22 @@ class Music(commands.Cog):
         context.voice_state = self.get_voice_state(context)
 
     async def cog_command_error(self, context: commands.Context, error: commands.CommandError):
-        await context.send(f'Error: {str(error)}')
+        await context.send(embed = discord.Embed(description = f'{str(error)}', colour = discord.Colour.dark_gold()))
 
     @commands.command(name = 'join')
     async def _join(self, context: commands.Context):
         if context.voice_state.voice:
             await context.voice_state.voice.move_to(context.author.voice.channel)
-            await context.send(f'Moving to "{context.author.voice.channel}"')
+            await context.send(embed = discord.Embed(title = f'Moving to *{context.author.voice.channel}*', colour = discord.Colour.dark_gold())
+                                                  .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                                  )
             return
         
         context.voice_state.voice = await context.author.voice.channel.connect()
-        await context.send(f'See a need, fill a need!')
+        await context.send(embed = discord.Embed(title = "**See a need, fill a need!**", colour = discord.Colour.dark_gold())
+                                          .set_image(url = "https://c.tenor.com/2ieSDMtFYG8AAAAC/bigweld-robots.gif")
+                                          .set_author(name = "Bigweld:", icon_url = happy_bigweld)
+                                          )
 
     @commands.command(name = 'leave', aliases = ['disconnect, fuckoff'])
     async def _leave(self, context: commands.Context):
@@ -268,6 +290,10 @@ class Music(commands.Cog):
 
         await context.voice_state.stop()
         del self.voice_states[context.guild.id] # clear queue
+        await context.send(embed = discord.Embed(title = "*You can shine no matter what you\'re made of.*", colour = discord.Colour.dark_gold())
+                                          .set_image(url = "https://c.tenor.com/FCKn1UGGrZIAAAAd/goodbye-goodbye-my-lover.gif")
+                                          .set_author(name = "Bigweld:", icon_url = sad_bigweld)
+                                          )
 
     @commands.command(name = 'np', alises = ['nowplaying', 'playing'])
     async def _np(self, context = commands.Context):
@@ -277,13 +303,17 @@ class Music(commands.Cog):
     async def _pause(self, context: commands.Context):
         if not context.voice_state.is_playing and context.voice_state.voice.is_playing():
             context.voice_state.voice.pause()
-            await context.send('Audio playback has been paused.')
+            await context.send(embed = discord.Embed(title = 'Audio playback has been paused.', colour = discord.Colour.dark_gold())
+                                              .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                              )
 
     @commands.command(name = 'resume')
     async def _resume(self, context: commands.Context):
         if not context.voice_state.is_playing and context.voice_state.voice.is_paused():
             context.voice_state.voice.resume()
-            await context.send('Audio playback has been resumed.')
+            await context.send(embed = discord.Embed(title = 'Audio playback has been resumed.', colour = discord.Colour.dark_gold())
+                                              .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                              )
 
     @commands.command(name = 'stop')
     async def _stop(self, context: commands.Context):
@@ -292,19 +322,25 @@ class Music(commands.Cog):
 
         if context.voice_state.is_playing:
             context.voice_state.voice.stop()
-            await context.send('Audio playback has been stopped, and the queue has been cleared.')
+            await context.send(embed = discord.Embed(title = 'Audio playback has been stopped, and the queue has been cleared.', colour = discord.Colour.dark_gold())
+                                              .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                              )
 
     @commands.command(name = 'skip', aliases = ['s', 'forceskip', 'fs'])
     async def _skip(self, context: commands.Context):
         if not context.voice_state.is_playing:
             return # do nothing
-        await context.send(f'Skipping "{context.voice_state.current.source.title}".')
+        await context.send(embed = discord.Embed(title = f'Skipping **{context.voice_state.current.source.title}**.', colour = discord.Colour.dark_gold())
+                                          .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                          )
         context.voice_state.skip()
 
     @commands.command(name = 'queue', aliases = ['q', 'que'])
     async def _queue(self, context: commands.Context, *, page: int = 1):
         if len(context.voice_state.songs) == 0:
-            return await context.send("The silence is deafening...")
+            return await context.send(embed = discord.Embed(title = "*The silence is deafening...*", colour = discord.Colour.dark_gold())
+                                                     .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                                     )
 
         items_per_page = 10
         pages = math.ceil(len(context.voice_state.songs) / items_per_page)
@@ -315,9 +351,13 @@ class Music(commands.Cog):
         queue = ''
 
         for i, song in enumerate(context.voice_state.songs[start:end], start = start):
-            queue += f'({i+1})\t[**{song.source.title}**]({song.source.url})\n'
+            queue += f'({i+1}) • [**{song.source.title}**]({song.source.url}) • {song.requester.mention}\n'
 
-        embed = discord.Embed(description = f'Queue consists of **{len(context.voice_state.songs)}** song(s): \n\n{queue}').set_footer(text = f'Page {page}/{pages}')
+        embed = (discord.Embed(description = f'Queue contains **{len(context.voice_state.songs)}** song(s): \n\n{queue}', 
+                               colour = discord.Colour.dark_gold())
+                        .set_footer(text = f'• PAGE *{page}/{pages}* •')
+                        .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                        )
         await context.send(embed = embed)
 
     @commands.command(name = 'shuffle', aliases = ['sh'])
@@ -326,14 +366,18 @@ class Music(commands.Cog):
             return
 
         context.voice_state.songs.shuffle()
-        await context.send("Queue has been shuffled!")
+        await context.send(embed = discord.Embed(title = "Queue has been shuffled!", colour = discord.Colour.dark_gold())
+                                          .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                          )
 
     @commands.command(name = 'remove', aliases = ['rem', 'r', 'del', 'delete'])
     async def _remove(self, context: commands.Context, index: int):
         if len(context.voice_state.songs) == 0:
             return
         
-        await context.send(f"Removed {context.voice_state.songs[index - 1].source.title} from the queue.")
+        await context.send(embed = discord.Embed(title = f"Removed **{context.voice_state.songs[index - 1].source.title}** from the queue", colour = discord.Colour.dark_gold())
+                                          .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                          )
         context.voice_state.songs.remove(index - 1)
 
     @commands.command(name = 'play', aliases = ['p'])
@@ -350,22 +394,41 @@ class Music(commands.Cog):
                 song = Song(source)
 
                 await context.voice_state.songs.put(song)
-                await context.send(f'Added {str(source)} to queue.')
+                await context.send(embed = discord.Embed(title = f'Added **{str(source)}** to the queue.', colour = discord.Colour.dark_gold())
+                                                  .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                                  )
 
     @_join.before_invoke
     @_play.before_invoke
     async def ensure_voice_state(self, context: commands.Context):
         if not context.author.voice or not context.author.voice.channel:
-            await context.send('You must join a voice channel before summoning me!')
+            await context.send(embed = discord.Embed(title = 'You must join a voice channel before summoning me!', colour = discord.Colour.dark_gold())
+                                              .set_author(name = "Bigweld:", icon_url = self.bot.user.avatar_url)
+                                              )
             raise commands.CommandError('You are not connected to any voice channel.')
 
         if context.voice_client:
             if context.voice_client.channel != context.author.voice.channel:
                 raise commands.CommandError('Bot is already in a voice channel.')
         
-    
-bot = commands.Bot( command_prefix = '-', strip_after_prefix = 'True')
+if is_dev == "Y":
+    bot = commands.Bot( command_prefix = 'dev-', strip_after_prefix = 'True')
+else:
+    bot = commands.Bot( command_prefix = '-', strip_after_prefix = 'True')
+
 bot.add_cog(Music(bot))
+
+@bot.listen('on_message')
+async def message_listener(message):
+    for i in WORDS:
+        if i in message.content:
+            print(f'{Tag.alert}{message.author} said "{i}" ({message.id}){rs.all}')
+            embed = discord.Embed(title = "bruh", colour = discord.Colour.dark_gold())
+            await message.reply(embed = embed)
+            await message.reply("https://www.youtube.com/watch?v=GuvMx-gVBeo")
+    if message.content.startswith(bot.command_prefix):
+        print(f"{Tag.cmd}{message.content} used by {message.author} ({message.author.id}){rs.all}")
+
 
 @bot.event
 async def on_ready():
@@ -373,10 +436,7 @@ async def on_ready():
         if guild.name == GUILD:
             break
     
-    print(
-        f'\t{bot.user} has connected to the following guild: \n'
-        f'\t{guild.name} (id: {guild.id})'
-    )
+    print(f'{Tag.sys}{bot.user} has connected to {guild.name} (id: {guild.id}){rs.all}')
         
 bot.run(TOKEN)
 
