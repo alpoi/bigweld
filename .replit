@@ -1,1 +1,1 @@
-run = "while true; do python bigweld.py; sleep 2; done"
+run = "python bigweld.py"
