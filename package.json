@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "eslint": "^8.46.0",
+    "play-dl": "^1.9.6",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@discordjs/voice": "^0.16.0",
+    "discord.js": "^14.12.1"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "register-commands": "node dist/registerCommands.js"
+  }
+}
