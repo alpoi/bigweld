@@ -2,10 +2,10 @@ import DiscordClient from "../client";
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel, getVoiceConnections } from "@discordjs/voice";
 import {
-    BigweldAlreadyPresent, BigweldElsewhere,
-    BigweldVoiceChannelNull,
-    UserVoiceChannelMismatch,
-    UserVoiceChannelNull
+    BigweldAlreadyPresentError, BigweldElsewhereError,
+    BigweldVoiceChannelNullError,
+    UserVoiceChannelMismatchError,
+    UserVoiceChannelNullError
 } from "../errors";
 
 export default class VoiceService {
@@ -35,9 +35,9 @@ export default class VoiceService {
     public async ensureUserConnectedWithBigweld(interaction: ChatInputCommandInteraction) : Promise<void> {
         const member: GuildMember = interaction.member as GuildMember;
 
-        if (!member.voice.channelId) throw new UserVoiceChannelNull();
-        if (!this.channelId) throw new BigweldVoiceChannelNull();
-        if (member.voice.channelId !== this.channelId) throw new UserVoiceChannelMismatch();
+        if (!member.voice.channelId) throw new UserVoiceChannelNullError();
+        if (!this.channelId) throw new BigweldVoiceChannelNullError();
+        if (member.voice.channelId !== this.channelId) throw new UserVoiceChannelMismatchError();
     }
 
     async pausePlayback(interaction: ChatInputCommandInteraction) : Promise<void> {
@@ -53,9 +53,9 @@ export default class VoiceService {
     async joinVoiceChannel(interaction: ChatInputCommandInteraction) : Promise<void> {
         const member: GuildMember = interaction.member as GuildMember;
 
-        if (!member.voice.channelId) throw new UserVoiceChannelNull();
-        if (this.channelId === member.voice.channelId) throw new BigweldAlreadyPresent();
-        if (this.channelId && this.channelId !== member.voice.channelId) throw new BigweldElsewhere();
+        if (!member.voice.channelId) throw new UserVoiceChannelNullError();
+        if (this.channelId === member.voice.channelId) throw new BigweldAlreadyPresentError();
+        if (this.channelId && this.channelId !== member.voice.channelId) throw new BigweldElsewhereError();
 
         const connection: VoiceConnection = joinVoiceChannel({
             channelId: member.voice.channelId,
@@ -69,7 +69,7 @@ export default class VoiceService {
 
     async leaveVoiceChannel(interaction: ChatInputCommandInteraction) : Promise<void> {
         await this.ensureUserConnectedWithBigweld(interaction);
-        if (!this.channelId) throw new BigweldVoiceChannelNull();
+        if (!this.channelId) throw new BigweldVoiceChannelNullError();
         this.channelId = null;
     }
 }

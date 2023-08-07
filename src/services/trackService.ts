@@ -1,6 +1,7 @@
 import DiscordClient from "../client";
 import Track from "../models/track";
-import {ChatInputCommandInteraction} from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
+import { NothingPlayingError, TrackIndexError } from "../errors";
 
 export default class TrackService {
     public client: DiscordClient;
@@ -13,58 +14,42 @@ export default class TrackService {
         this.tracks = []
     }
 
-    async listTracks(interaction: ChatInputCommandInteraction) : Promise<void> {
-        await this.client.messageService.listTracksMessage(interaction);
+    async listTracks() : Promise<Track[]> {
+        return this.tracks;
     }
 
-    async addTracks(interaction: ChatInputCommandInteraction) : Promise<void> {
-        if (!await this.client.voiceService.userConnectedWithBigweld(interaction)) return;
-
+    async addTracks(interaction: ChatInputCommandInteraction) : Promise<Track[]> {
+        await this.client.voiceService.ensureUserConnectedWithBigweld(interaction);
         const tracks: Track[] = []; // TODO parse interaction to get track details and use play-dl
-
         this.tracks.concat(tracks);
-
-        if (tracks.length == 0) {
-            await this.client.messageService.noResultsMessage(interaction);
-        } else if (tracks.length == 1) {
-            await this.client.messageService.addedTrackMessage(interaction, tracks.pop()!)
-        } else {
-            await this.client.messageService.addedTracksMessage(interaction, tracks);
-        }
+        return tracks;
     }
 
-    async removeTrack(interaction: ChatInputCommandInteraction) : Promise<void> {
-        if (!await this.client.voiceService.userConnectedWithBigweld(interaction)) return;
+    async removeTrack(interaction: ChatInputCommandInteraction) : Promise<Track> {
+        await this.client.voiceService.ensureUserConnectedWithBigweld(interaction);
         const trackNumber: number = 0; // TODO parse interaction to get track number
         const track: Track | undefined = this.tracks.at(trackNumber);
 
-        if (!track) {
-            await this.client.messageService.noSuchTrackMessage(interaction);
-            return;
-        }
+        if (!track) throw new TrackIndexError();
 
         this.tracks.splice(trackNumber, 1)
-        await this.client.messageService.removedTrackMessage(interaction, track);
+        return track;
     }
 
-    async clearTracks(interaction: ChatInputCommandInteraction) : Promise<void> {
-        if (!await this.client.voiceService.userConnectedWithBigweld(interaction)) return;
+    async clearTracks(interaction: ChatInputCommandInteraction) : Promise<number> {
+        await this.client.voiceService.ensureUserConnectedWithBigweld(interaction);
+        const count: number = this.tracks.length;
         this.tracks = [];
+        return count;
     }
 
-    async skipTrack(interaction: ChatInputCommandInteraction) : Promise<void> {
-        if (!await this.client.voiceService.userConnectedWithBigweld(interaction)) return;
+    async skipTrack(interaction: ChatInputCommandInteraction) : Promise<{ skipped: Track, nowPlaying: Track | undefined }> {
+        await this.client.voiceService.ensureUserConnectedWithBigweld(interaction);
 
-        if (!this.nowPlaying) {
-            await this.client.messageService.nothingPlayingMessage(interaction);
-        } else {
-            const skipped: Track = this.nowPlaying;
-            this.nowPlaying = this.tracks.shift();
-            await this.client.messageService.skippedTrackMessage(interaction, skipped);
+        if (!this.nowPlaying) throw new NothingPlayingError();
 
-            if (this.nowPlaying) {
-                await this.client.messageService.nowPlayingMessage(interaction, this.nowPlaying);
-            }
-        }
+        const skipped: Track = this.nowPlaying;
+        this.nowPlaying = this.tracks.shift();
+        return { skipped: skipped, nowPlaying: this.nowPlaying };
     }
 }

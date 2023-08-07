@@ -1,5 +1,7 @@
-export class UserVoiceChannelNull extends Error {}
-export class UserVoiceChannelMismatch extends Error {}
-export class BigweldVoiceChannelNull extends Error {}
-export class BigweldAlreadyPresent extends Error {}
-export class BigweldElsewhere extends Error {}
+export class UserVoiceChannelNullError extends Error {}
+export class UserVoiceChannelMismatchError extends Error {}
+export class BigweldVoiceChannelNullError extends Error {}
+export class BigweldAlreadyPresentError extends Error {}
+export class BigweldElsewhereError extends Error {}
+export class TrackIndexError extends Error {}
+export class NothingPlayingError extends Error {}
