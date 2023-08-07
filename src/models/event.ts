@@ -1,8 +1,6 @@
 import { ClientEvents } from "discord.js";
 import DiscordClient from "../client";
 
-
-
 export default class Event {
     public name: keyof ClientEvents
     public once: boolean
