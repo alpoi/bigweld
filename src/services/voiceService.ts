@@ -1,75 +1,92 @@
-import DiscordClient from "../client";
-import { ChatInputCommandInteraction, GuildMember } from "discord.js";
-import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel, getVoiceConnections } from "@discordjs/voice";
+import { GuildMember, VoiceChannel } from "discord.js";
 import {
-    BigweldAlreadyPresentError, BigweldElsewhereError,
-    BigweldVoiceChannelNullError,
-    UserVoiceChannelMismatchError,
-    UserVoiceChannelNullError
-} from "../errors";
+    VoiceConnection,
+    joinVoiceChannel,
+    AudioPlayer,
+    AudioPlayerStatus,
+    createAudioPlayer,
+    NoSubscriberBehavior
+} from "@discordjs/voice";
+
+import Track from "../models/track";
+import BigweldClient from "../client";
 
 export default class VoiceService {
-    public client: DiscordClient;
-    public voiceConnection?: VoiceConnection | null;
-    public channelId?: string | null;
+    public client: BigweldClient;
+    public tracks: Track[] = [];
+    public player: AudioPlayer = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
+    public playerState: AudioPlayerStatus = AudioPlayerStatus.Idle;
+    public connection: VoiceConnection | undefined;
+    public channelId: string | undefined;
+    public nowPlaying: Track | undefined;
 
-    constructor(client: DiscordClient) {
+    constructor(client: BigweldClient) {
         this.client = client;
+        this.player.on(AudioPlayerStatus.Paused,() => this.playerState = AudioPlayerStatus.Paused);
+        this.player.on(AudioPlayerStatus.Buffering, () => this.playerState = AudioPlayerStatus.Buffering);
+        this.player.on(AudioPlayerStatus.AutoPaused, () => this.playerState = AudioPlayerStatus.AutoPaused);
+        this.player.on(AudioPlayerStatus.Playing, () => this.playerState = AudioPlayerStatus.Playing);
+        this.player.on(AudioPlayerStatus.Idle,() => this.playerState = AudioPlayerStatus.Idle);
     }
 
-    private async setConnection(connection: VoiceConnection) : Promise<void> {
-        if (this.voiceConnection) await this.destroyConnection();
-        this.voiceConnection = connection;
+    public async memberConnectedWithBigweld(member: GuildMember) : Promise<boolean> {
+        return member.voice.channelId === this.channelId;
     }
 
-    private async destroyConnection() : Promise<void> {
-        this.voiceConnection?.destroy();
-        this.voiceConnection = null;
-    }
-
-    private async destroyAllConnections(group: string = "default") : Promise<void> {
-        const connections: Map<string, VoiceConnection> | undefined = getVoiceConnections(group);
-        if (connections) connections.forEach((conn: VoiceConnection) => conn.destroy());
-    }
-
-    public async ensureUserConnectedWithBigweld(interaction: ChatInputCommandInteraction) : Promise<void> {
-        const member: GuildMember = interaction.member as GuildMember;
-
-        if (!member.voice.channelId) throw new UserVoiceChannelNullError();
-        if (!this.channelId) throw new BigweldVoiceChannelNullError();
-        if (member.voice.channelId !== this.channelId) throw new UserVoiceChannelMismatchError();
-    }
-
-    async pausePlayback(interaction: ChatInputCommandInteraction) : Promise<void> {
-        await this.ensureUserConnectedWithBigweld(interaction)
-        // TODO implement
-    }
-
-    async resumePlayback(interaction: ChatInputCommandInteraction) : Promise<void> {
-        await this.ensureUserConnectedWithBigweld(interaction)
-        // TODO implement
-    }
-
-    async joinVoiceChannel(interaction: ChatInputCommandInteraction) : Promise<void> {
-        const member: GuildMember = interaction.member as GuildMember;
-
-        if (!member.voice.channelId) throw new UserVoiceChannelNullError();
-        if (this.channelId === member.voice.channelId) throw new BigweldAlreadyPresentError();
-        if (this.channelId && this.channelId !== member.voice.channelId) throw new BigweldElsewhereError();
-
-        const connection: VoiceConnection = joinVoiceChannel({
-            channelId: member.voice.channelId,
-            guildId: interaction.guildId!,
-            adapterCreator: interaction.guild!.voiceAdapterCreator
+    public async join(channel: VoiceChannel) : Promise<void> {
+        this.channelId = channel.id;
+        this.connection = joinVoiceChannel({
+            channelId: channel.id,
+            guildId: this.client.guildId,
+            adapterCreator: channel.guild.voiceAdapterCreator
         });
 
-        this.channelId = member.voice.channelId;
-        await this.setConnection(connection);
+        this.connection.subscribe(this.player);
     }
 
-    async leaveVoiceChannel(interaction: ChatInputCommandInteraction) : Promise<void> {
-        await this.ensureUserConnectedWithBigweld(interaction);
-        if (!this.channelId) throw new BigweldVoiceChannelNullError();
-        this.channelId = null;
+    public async leave() : Promise<void> {
+        this.connection?.destroy();
+        this.connection = undefined;
+        this.channelId = undefined;
+        this.nowPlaying = undefined;
+        this.tracks = [];
+        this.player.stop();
+    }
+
+    public async pause() : Promise<boolean> {
+        return this.player.pause(true);
+    }
+
+    public async resume() : Promise<boolean> {
+        return this.player.unpause();
+    }
+
+    public async enqueue(tracks: Track[]) : Promise<Track | undefined> {
+        this.tracks.concat(tracks);
+        if (!this.nowPlaying) {
+            await this.skip();
+        }
+        return this.nowPlaying;
+    }
+
+    public async dequeue(trackNumber: number) : Promise<Track | undefined> {
+        const track: Track | undefined = this.tracks.at(trackNumber);
+        if (track) this.tracks.splice(trackNumber, 1);
+        return track;
+    }
+
+    public async clear() : Promise<number> {
+        const count: number = this.tracks.length;
+        this.tracks = [];
+        return count;
+    }
+
+    public async skip() : Promise<Track | undefined> {
+        const skipped: Track | undefined = this.nowPlaying;
+        this.nowPlaying = this.tracks.shift();
+        if (this.nowPlaying) {
+            this.player.play(await this.nowPlaying.toResource());
+        }
+        return skipped;
     }
 }

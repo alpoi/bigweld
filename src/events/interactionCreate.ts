@@ -1,9 +1,9 @@
 import { Events, Interaction } from "discord.js";
 import Event from "../models/event";
 import Command from "../models/command";
-import DiscordClient from "../client";
+import BigweldClient from "../client";
 
-const execute = (client: DiscordClient) => async (interaction: Interaction) : Promise<void> => {
+const interactionCreateHandler = (client: BigweldClient) => async (interaction: Interaction) : Promise<void> => {
     if (!interaction.isChatInputCommand()) {
         return;
     }
@@ -19,16 +19,8 @@ const execute = (client: DiscordClient) => async (interaction: Interaction) : Pr
         await command.execute(interaction);
     } catch (error) {
         console.error(error);
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-        } else {
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-        }
+        await client.messageService.errorMessage(interaction);
     }
 };
 
-export default new Event(
-    Events.InteractionCreate,
-    false,
-    execute
-);
+export default new Event(Events.InteractionCreate, false, interactionCreateHandler);

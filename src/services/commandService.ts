@@ -1,13 +1,13 @@
 import { REST, Routes, Collection, RESTPostAPIApplicationCommandsJSONBody } from "discord.js";
 import { clientId, token } from "../config.json";
 import Command from "../models/command";
-import DiscordClient from "../client";
+import BigweldClient from "../client";
 
 
 export default class CommandService extends Collection<string, Command> {
-    client: DiscordClient;
+    client: BigweldClient;
 
-    constructor(client: DiscordClient) {
+    constructor(client: BigweldClient) {
         super();
         this.client = client;
     }

@@ -1,10 +1,10 @@
-import DiscordClient from "../client";
+import BigweldClient from "../client";
 import Event from "../models/event";
 
 export default class EventService {
-    public client: DiscordClient;
+    public client: BigweldClient;
 
-    constructor(client: DiscordClient) {
+    constructor(client: BigweldClient) {
         this.client = client;
     }
 

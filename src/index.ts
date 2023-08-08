@@ -1,4 +1,4 @@
-import DiscordClient from "./client";
+import BigweldClient from "./client";
 import { guildId } from "./config.json";
 
 import Join from "./commands/join";
@@ -7,8 +7,9 @@ import Leave from "./commands/leave";
 
 import ClientReady from "./events/clientReady";
 import InteractionCreate from "./events/interactionCreate";
+import VoiceStateUpdate from "./events/voiceStateUpdate";
 
-const client: DiscordClient = new DiscordClient(guildId);
+const client: BigweldClient = new BigweldClient(guildId);  // TODO refactor to allow multiple guilds
 
 client.commandService.setCommands([
     Join,
@@ -18,7 +19,8 @@ client.commandService.setCommands([
 
 client.eventService.setEvents([
     ClientReady,
-    InteractionCreate
+    InteractionCreate,
+    VoiceStateUpdate
 ])
 
 client.start();

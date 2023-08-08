@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import Command from "../models/command";
-import DiscordClient from "../client";
+import BigweldClient from "../client";
 
-const pingHandler = (client: DiscordClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
+const pingHandler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
     await client.messageService.deferReply(interaction);
     await client.messageService.pongMessage(interaction);
 }

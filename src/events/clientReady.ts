@@ -1,8 +1,8 @@
 import { Events } from 'discord.js';
-import DiscordClient from '../client';
+import BigweldClient from '../client';
 import Event from '../models/event';
 
-const execute = (client: DiscordClient) => () : void => {
+const clientReadyHandler = (client: BigweldClient) => () : void => {
     if (client.user === null) {
         console.error('Client user is null')
     } else {
@@ -10,8 +10,4 @@ const execute = (client: DiscordClient) => () : void => {
     }
 };
 
-export default new Event(
-    Events.ClientReady,
-    true,
-    execute
-);
+export default new Event(Events.ClientReady,true, clientReadyHandler);

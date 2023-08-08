@@ -1,11 +1,11 @@
-import DiscordClient from "../client";
 import { ChatInputCommandInteraction, InteractionReplyOptions } from "discord.js";
+import BigweldClient from "../client";
 import Track from "../models/track";
 
 export default class MessageService {
-    public client: DiscordClient;
+    public client: BigweldClient;
 
-    constructor(client: DiscordClient) {
+    constructor(client: BigweldClient) {
         this.client = client;
     }
 
@@ -19,6 +19,12 @@ export default class MessageService {
 
     public async deferReply(interaction: ChatInputCommandInteraction, ephemeral: boolean = false) : Promise<void> {
         await interaction.deferReply({ ephemeral })
+    }
+
+    public async errorMessage(interaction: ChatInputCommandInteraction) : Promise<void> {
+        await this.interactionReply(interaction,
+            { content: 'There was an error while executing this command!', ephemeral: true}
+        );
     }
 
     public async leftVoiceChannelMessage(interaction: ChatInputCommandInteraction) : Promise<void> {
