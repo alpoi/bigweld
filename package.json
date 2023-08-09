@@ -10,6 +10,7 @@
   },
   "main": "dist/index.js",
   "scripts": {
+    "run": "node .",
     "build": "npx tsc",
     "register-commands": "node dist/registerCommands.js"
   }

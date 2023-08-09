@@ -11,12 +11,14 @@ export default class BigweldClient extends Client {
     public eventService: EventService = new EventService(this);
     public voiceService: VoiceService = new VoiceService(this);
     public messageService: MessageService = new MessageService(this);
+    public avatarUrl?: string;
 
     constructor(guildId: string) {
         super({
             intents: [
                 GatewayIntentBits.Guilds,
-                GatewayIntentBits.GuildVoiceStates
+                GatewayIntentBits.GuildVoiceStates,
+                GatewayIntentBits.GuildPresences
             ]
         });
         this.guildId = guildId;
@@ -24,5 +26,6 @@ export default class BigweldClient extends Client {
 
     start() {
         this.login(token).catch(console.error);
+        this.avatarUrl = this.user!.displayAvatarURL();
     }
 }

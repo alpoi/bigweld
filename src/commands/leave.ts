@@ -1,14 +1,20 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import BigweldClient from "../client";
 import Command from "../models/command";
 
-const leaveHandler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
-    await interaction.deferReply({ ephemeral: true });
-    await client.voiceService.leaveVoiceChannel(interaction);
+const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
+    await client.messageService.deferReply(interaction, true);
+
+    if (client.voiceService.channelId && client.voiceService.connection) {
+        await client.voiceService.leave();
+        await client.messageService.rawReply(interaction, "Bye bye o/", false);
+    } else {
+        await client.messageService.rawReply(interaction, "Bigweld is not here", true);
+    }
 }
 
-export default new Command(
-    'leave',
-    'Bigweld will leave the voice channel',
-    leaveHandler
-);
+const builder: SlashCommandBuilder = new SlashCommandBuilder()
+    .setName('leave')
+    .setDescription('Bigweld will leave the voice channel');
+
+export default new Command(builder, handler);

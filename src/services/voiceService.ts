@@ -1,47 +1,87 @@
 import { GuildMember, VoiceChannel } from "discord.js";
 import {
-    VoiceConnection,
     joinVoiceChannel,
+    createAudioPlayer,
+    entersState,
+    VoiceConnection,
+    VoiceConnectionStatus,
     AudioPlayer,
     AudioPlayerStatus,
-    createAudioPlayer,
+    AudioPlayerError,
     NoSubscriberBehavior
 } from "@discordjs/voice";
-
-import Track from "../models/track";
 import BigweldClient from "../client";
+import Track from "../models/track";
+
 
 export default class VoiceService {
     public client: BigweldClient;
     public tracks: Track[] = [];
     public player: AudioPlayer = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
     public playerState: AudioPlayerStatus = AudioPlayerStatus.Idle;
-    public connection: VoiceConnection | undefined;
-    public channelId: string | undefined;
-    public nowPlaying: Track | undefined;
+    public connection?: VoiceConnection;
+    public channelId?: string;
+    public textChannelId?: string;
+    public nowPlaying?: Track;
 
     constructor(client: BigweldClient) {
         this.client = client;
-        this.player.on(AudioPlayerStatus.Paused,() => this.playerState = AudioPlayerStatus.Paused);
-        this.player.on(AudioPlayerStatus.Buffering, () => this.playerState = AudioPlayerStatus.Buffering);
-        this.player.on(AudioPlayerStatus.AutoPaused, () => this.playerState = AudioPlayerStatus.AutoPaused);
-        this.player.on(AudioPlayerStatus.Playing, () => this.playerState = AudioPlayerStatus.Playing);
-        this.player.on(AudioPlayerStatus.Idle,() => this.playerState = AudioPlayerStatus.Idle);
+        this.setAudioPlayerListeners();
     }
 
-    public async memberConnectedWithBigweld(member: GuildMember) : Promise<boolean> {
-        return member.voice.channelId === this.channelId;
+    public memberConnectedWithBigweld(member: GuildMember) : boolean {
+        return member.voice.channelId !== null && member.voice.channelId === this.channelId;
+    }
+
+    public isPaused() : boolean {
+        return this.playerState === AudioPlayerStatus.Paused || this.playerState === AudioPlayerStatus.AutoPaused;
+    }
+
+    public setAudioPlayerListeners() : void {
+        this.player?.on(AudioPlayerStatus.Paused,() => this.playerState = AudioPlayerStatus.Paused);
+        this.player?.on(AudioPlayerStatus.Buffering, () => this.playerState = AudioPlayerStatus.Buffering);
+        this.player?.on(AudioPlayerStatus.AutoPaused, () => this.playerState = AudioPlayerStatus.AutoPaused);
+        this.player?.on(AudioPlayerStatus.Playing, () => this.playerState = AudioPlayerStatus.Playing);
+        this.player?.on(AudioPlayerStatus.Idle,async () : Promise<void> => {
+            this.playerState = AudioPlayerStatus.Idle;
+            await this.skip();
+        });
+        this.player?.on("error", (error: AudioPlayerError) => console.error(error));
+    }
+
+    public setVoiceConnectionListeners() : void {
+        this.connection?.on(VoiceConnectionStatus.Disconnected, async () => {
+            await Promise.race([
+                entersState(this.connection!, VoiceConnectionStatus.Signalling, 5_000),
+                entersState(this.connection!, VoiceConnectionStatus.Connecting, 5_000)
+            ]).catch((error): void => {
+                console.error(error);
+                this.connection?.destroy();
+            })
+        })
     }
 
     public async join(channel: VoiceChannel) : Promise<void> {
+        if (this.channelId && this.connection) {
+            this.connection.destroy();
+            this.connection = undefined;
+        }
+
         this.channelId = channel.id;
         this.connection = joinVoiceChannel({
             channelId: channel.id,
             guildId: this.client.guildId,
             adapterCreator: channel.guild.voiceAdapterCreator
         });
+        this.setVoiceConnectionListeners();
+
+        if (!this.player) {
+            this.player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
+            this.setAudioPlayerListeners();
+        }
 
         this.connection.subscribe(this.player);
+        await this.skip();
     }
 
     public async leave() : Promise<void> {
@@ -57,15 +97,13 @@ export default class VoiceService {
         return this.player.pause(true);
     }
 
-    public async resume() : Promise<boolean> {
+    public async unpause() : Promise<boolean> {
         return this.player.unpause();
     }
 
     public async enqueue(tracks: Track[]) : Promise<Track | undefined> {
         this.tracks.concat(tracks);
-        if (!this.nowPlaying) {
-            await this.skip();
-        }
+        if (!this.nowPlaying) await this.skip();
         return this.nowPlaying;
     }
 
@@ -85,7 +123,8 @@ export default class VoiceService {
         const skipped: Track | undefined = this.nowPlaying;
         this.nowPlaying = this.tracks.shift();
         if (this.nowPlaying) {
-            this.player.play(await this.nowPlaying.toResource());
+            this.player.play(await this.nowPlaying.resource());
+            await this.client.messageService.embedMessage(this.channelId!, await this.nowPlaying.playingEmbed())
         }
         return skipped;
     }

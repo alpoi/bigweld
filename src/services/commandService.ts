@@ -13,7 +13,7 @@ export default class CommandService extends Collection<string, Command> {
     }
 
     setCommands(commands: Command[]) : void {
-        commands.forEach((cmd: Command) => this.set(cmd.name, cmd.bindToClient(this.client)));
+        commands.forEach((cmd: Command) => this.set(cmd.builder.name, cmd.bindToClient(this.client)));
     }
 
     async registerCommands(guildId: string) : Promise<void> {

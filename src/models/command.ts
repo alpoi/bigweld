@@ -2,14 +2,13 @@ import { SlashCommandBuilder, RESTPostAPIApplicationCommandsJSONBody } from "dis
 import BigweldClient from "../client";
 
 export default class Command {
-    public name: string
-    public description: string
-    public _execute: (client: BigweldClient) => Function;
-    public execute: Function = () : void => {};
+    public builder: SlashCommandBuilder;
 
-    constructor(name: string, description: string, execute: (client: BigweldClient) => Function) {
-        this.name = name;
-        this.description = description;
+    public execute: Function = () : void => {};
+    public _execute: (client: BigweldClient) => Function;
+
+    constructor(builder: SlashCommandBuilder, execute: (client: BigweldClient) => Function) {
+        this.builder = builder;
         this._execute = execute;
     }
 
@@ -19,9 +18,6 @@ export default class Command {
     }
 
     public toJSON(): RESTPostAPIApplicationCommandsJSONBody {
-        const command: SlashCommandBuilder = new SlashCommandBuilder()
-            .setName(this.name)
-            .setDescription(this.description)
-        return command.toJSON();
+        return this.builder.toJSON();
     }
 }

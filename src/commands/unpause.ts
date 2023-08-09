@@ -14,17 +14,17 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
 
     // TODO extract into embed builder
     if (!client.voiceService.nowPlaying) {
-        await client.messageService.rawReply(interaction, "You cannot pause the voices inside your head", true);
-    } else if (client.voiceService.isPaused()) {
-        await client.messageService.rawReply(interaction, "The music is already paused", true);
+        await client.messageService.rawReply(interaction, "There is nothing to unpause", true);
+    } else if (!client.voiceService.isPaused()) {
+        await client.messageService.rawReply(interaction, "The music is not paused", true);
     } else {
-        await client.voiceService.pause();
-        await client.messageService.rawReply(interaction, "The music is now paused", false);
+        await client.voiceService.unpause();
+        await client.messageService.rawReply(interaction, "The music has been unpaused", false);
     }
 }
 
 const builder: SlashCommandBuilder = new SlashCommandBuilder()
-    .setName('pause')
-    .setDescription('Bigweld will pause the music');
+    .setName('unpause')
+    .setDescription('Bigweld will unpause the music');
 
 export default new Command(builder, handler);
