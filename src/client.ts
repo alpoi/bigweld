@@ -1,5 +1,14 @@
 import { Client, GatewayIntentBits } from "discord.js";
-import { token } from "./config.json";
+import { is_expired, refreshToken, setToken } from "play-dl";
+import {
+    token,
+    spotifyClientId,
+    spotifyClientSecret,
+    spotifyMarket,
+    spotifyRefreshToken,
+    soundCloudClientId,
+    youTubeCookie
+} from "./config.json";
 import CommandService from "./services/commandService";
 import VoiceService from "./services/voiceService";
 import EventService from "./services/eventService";
@@ -18,14 +27,24 @@ export default class BigweldClient extends Client {
             intents: [
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildVoiceStates,
-                GatewayIntentBits.GuildPresences
+                GatewayIntentBits.GuildMessages
             ]
         });
         this.guildId = guildId;
     }
 
-    start() {
-        this.login(token).catch(console.error);
-        this.avatarUrl = this.user!.displayAvatarURL();
+    async start() {
+        await setToken({ youtube: { cookie: youTubeCookie } } );
+        await setToken({ soundcloud: { client_id: soundCloudClientId }});
+        await setToken({
+            spotify : {
+                client_id: spotifyClientId,
+                client_secret: spotifyClientSecret,
+                market: spotifyMarket,
+                refresh_token: spotifyRefreshToken
+            }
+        });
+        if (is_expired()) await refreshToken();
+        this.login(token).catch(console.error).then(() : void => { this.avatarUrl = this.user!.displayAvatarURL() });
     }
 }

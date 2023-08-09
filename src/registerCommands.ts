@@ -10,6 +10,7 @@ import List from "./commands/list";
 import Pause from "./commands/pause";
 import Play from "./commands/play";
 import Unpause from "./commands/unpause";
+import Skip from "./commands/skip";
 
 const client: BigweldClient = new BigweldClient(guildId);
 
@@ -21,6 +22,7 @@ client.commandService.setCommands([
     Pause,
     Ping,
     Play,
+    Skip,
     Unpause,
     Validate,
 ]);

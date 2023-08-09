@@ -7,6 +7,7 @@ import Clear from "./commands/clear";
 import List from "./commands/list";
 import Pause from "./commands/pause";
 import Play from "./commands/play";
+import Skip from "./commands/skip";
 import Join from "./commands/join";
 import Ping from "./commands/ping";
 import Leave from "./commands/leave";
@@ -17,8 +18,6 @@ import VoiceStateUpdate from "./events/voiceStateUpdate";
 
 const client: BigweldClient = new BigweldClient(guildId);
 
-// TODO skip command
-// TODO handle auth for play-dl
 
 client.commandService.setCommands([
     Clear,
@@ -28,6 +27,7 @@ client.commandService.setCommands([
     Pause,
     Ping,
     Play,
+    Skip,
     Unpause,
     Validate,
 ]);
@@ -36,7 +36,14 @@ client.eventService.setEvents([
     ClientReady,
     InteractionCreate,
     VoiceStateUpdate
-])
+]);
 
-client.start();
+client.start().catch(console.error);
 
+/* TODO
+ *  - put the original query in the embed
+ *  - fix it so it doesn't skip everytime /play is invoked
+ *  - fix it so it doesn't give the "bigweld can't hear you" error on /skip
+ *  - fix the voiceStateUpdate event handler
+ *  - search on title + artist rather than just title for spotify -> youtube
+ */

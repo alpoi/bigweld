@@ -4,7 +4,7 @@ import BigweldClient from "../client";
 
 
 const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
-    await client.messageService.deferReply(interaction, true);
+    await client.messageService.deferReply(interaction, false);
     const member: GuildMember = interaction.member as GuildMember;
     const channel: VoiceChannel | null = member.voice.channel as VoiceChannel;
     if (channel) {

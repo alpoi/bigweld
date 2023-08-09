@@ -12,7 +12,7 @@ import {
     SpotifyAlbum,
     InfoData as YouTubeInfo,
     SoundCloudTrack as SoundCloudInfo,
-    SpotifyTrack as SpotifyInfo,
+    SpotifyTrack as SpotifyInfo, search,
 } from "play-dl";
 import BigweldClient from "../client";
 import Command from "../models/command";
@@ -23,9 +23,10 @@ import { QueryType } from "../models/query";
 const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
     await client.messageService.deferReply(interaction, false);
     const member: GuildMember = interaction.member as GuildMember;
-    const channel: VoiceChannel | null = member.voice.channel as VoiceChannel;
+    const channel: VoiceChannel | null = member.voice.channel as VoiceChannel | null;
 
     if (!client.voiceService.channelId && channel) {
+        console.log("Not in a channel, but caller is - joining them");
         client.voiceService.textChannelId = interaction.channelId;
         await client.voiceService.join(channel);
     }
@@ -49,52 +50,91 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     let response: EmbedBuilder | string;
 
     if (queryType == QueryType.SoundCloudPlaylist) {
+
         const playlist: SoundCloudPlaylist = await soundcloud(queryString) as SoundCloudPlaylist;
         tracks = (await playlist.all_tracks()).map((info: SoundCloudInfo) => new SoundCloudTrack(info, member, client));
         response = `Queued ${tracks.length} songs from a soundcloud playlist`; // TODO make embed
+
     } else if (queryType == QueryType.SoundCloudTrack) {
+
         const info: SoundCloudInfo = await soundcloud(queryString) as SoundCloudInfo;
         const track: SoundCloudTrack = new SoundCloudTrack(info, member, client);
         tracks = [ track ];
         response = await track.enqueuedEmbed(client.voiceService.tracks.length);
+
     } else if (queryType == QueryType.SpotifyPlaylist) {
+
         const playlist: SpotifyPlaylist = await spotify(queryString) as SpotifyPlaylist;
         tracks = (await playlist.all_tracks()).map((info: SpotifyInfo) => new SpotifyTrack(info, member, client));
         response = `Queued ${tracks.length} songs from a spotify playlist`; // TODO make embed
+
     } else if (queryType == QueryType.SpotifyAlbum) {
+
         const album: SpotifyAlbum = await spotify(queryString) as SpotifyAlbum;
         tracks = (await album.all_tracks()).map((info: SpotifyInfo) => new SpotifyTrack(info, member, client));
         response = `Queued ${tracks.length} songs from a spotify album`; // TODO make embed
+
     } else if (queryType == QueryType.SpotifyTrack) {
+
         const info: SpotifyInfo = await spotify(queryString) as SpotifyInfo;
         const track: SpotifyTrack = new SpotifyTrack(info, member, client);
         tracks = [ track ];
         response = await track.enqueuedEmbed(client.voiceService.tracks.length);
+
     } else if (queryType == QueryType.YouTubePlaylist) {
+
         const playlist: YouTubePlayList = await playlist_info(queryString, { incomplete: true }) as YouTubePlayList;
         const videos: YouTubeVideo[] = await playlist.all_videos();
         tracks = (await Promise.all(videos.map(async (video: YouTubeVideo): Promise<YouTubeInfo> => video_info(video.url))))
             .map((info: YouTubeInfo) => new YouTubeTrack(info, member, client));
         response = `Queued ${tracks.length} songs from a youtube playlist`; // TODO make embed
+
     } else if (queryType == QueryType.YouTubeVideo) {
+
         const info: YouTubeInfo = await video_info(queryString) as YouTubeInfo;
         const track: YouTubeTrack = new YouTubeTrack(info, member, client);
         tracks = [ track ];
         response = await track.enqueuedEmbed(client.voiceService.tracks.length);
+
+    } else if (queryType == QueryType.Search) {
+
+        const videos: YouTubeVideo[] = await search(queryString, { source: { youtube: "video" }, limit: 1 });
+        const video: YouTubeVideo | undefined = videos.pop();
+        if (!video) {
+            await client.messageService.rawReply(interaction, `Could not find track from "${queryString}"`, false);
+            return;
+        }
+        const info: YouTubeInfo = await video_info(video.url);
+        const track: YouTubeTrack = new YouTubeTrack(info, member, client);
+        tracks = [ track ];
+        response = await track.enqueuedEmbed(client.voiceService.tracks.length);
+
     } else {
         await client.messageService.errorMessage(interaction);
         console.error(`Unexpected query type: ${queryType}`);
         return;
     }
 
-    if (!tracks) { // TODO find the cases where this happens and handle them properly
-        await client.messageService.rawReply(interaction, "Could not find track", false);
-        return;
-    }
+    console.log("Tracks to queue");
+    console.log(tracks);
 
+    console.log("Tracks pre-queue");
+    console.log(client.voiceService.tracks);
+
+    console.log(`Queueing ${tracks.length} tracks`);
     await client.voiceService.enqueue(tracks);
+    console.log("Tracks post-queue");
+    console.log(client.voiceService.tracks);
+
     if (!client.voiceService.nowPlaying) {
+        console.log("Player is idle so we are skipping to the track");
         await client.voiceService.skip();
+
+        console.log("Tracks post-skip");
+        console.log(client.voiceService.tracks);
+
+        console.log("Now playing post-skip");
+        console.log(client.voiceService.nowPlaying);
     }
 
     if (response instanceof EmbedBuilder) {

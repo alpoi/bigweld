@@ -1,6 +1,5 @@
-import {Channel, ChatInputCommandInteraction, EmbedBuilder, InteractionReplyOptions} from "discord.js";
+import { Channel, ChatInputCommandInteraction, EmbedBuilder, InteractionReplyOptions } from "discord.js";
 import BigweldClient from "../client";
-// import Track from "../models/track";
 
 export default class MessageService {
     public client: BigweldClient;
