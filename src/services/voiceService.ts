@@ -40,25 +40,12 @@ export default class VoiceService {
     }
 
     public setAudioPlayerListeners() : void {
-        this.player?.on(AudioPlayerStatus.Paused,() => {
-            this.playerState = AudioPlayerStatus.Paused;
-            console.log("Player transitioned to Paused state");
-        });
-        this.player?.on(AudioPlayerStatus.Buffering, () => {
-            this.playerState = AudioPlayerStatus.Buffering;
-            console.log("Player transitioned to Buffering state");
-        });
-        this.player?.on(AudioPlayerStatus.AutoPaused, () => {
-            this.playerState = AudioPlayerStatus.AutoPaused;
-            console.log("Player transitioned to AutoPaused state");
-        });
-        this.player?.on(AudioPlayerStatus.Playing, () => {
-            this.playerState = AudioPlayerStatus.Playing;
-            console.log("Player transitioned to Playing state");
-        });
+        this.player?.on(AudioPlayerStatus.Paused,() => this.playerState = AudioPlayerStatus.Paused);
+        this.player?.on(AudioPlayerStatus.Buffering, () => this.playerState = AudioPlayerStatus.Buffering);
+        this.player?.on(AudioPlayerStatus.AutoPaused, () => this.playerState = AudioPlayerStatus.AutoPaused);
+        this.player?.on(AudioPlayerStatus.Playing, () => this.playerState = AudioPlayerStatus.Playing);
         this.player?.on(AudioPlayerStatus.Idle,async () : Promise<void> => {
             this.playerState = AudioPlayerStatus.Idle;
-            console.log("Player transitioned to Idle state");
             if (is_expired()) await refreshToken();
             await this.skip();
         });
@@ -78,9 +65,7 @@ export default class VoiceService {
     }
 
     public async join(channel: VoiceChannel) : Promise<void> {
-        console.log("Starting join function execution");
         if (this.channelId && this.connection) {
-            console.log("Already in a voice channel, leaving and destroying connection");
             this.connection.destroy();
             this.connection = undefined;
         }
@@ -91,17 +76,13 @@ export default class VoiceService {
             guildId: this.client.guildId,
             adapterCreator: channel.guild.voiceAdapterCreator
         });
-        console.log("Joined voice channel");
         this.setVoiceConnectionListeners();
-        console.log("Set voice connection listeners");
 
         if (!this.player) {
-            console.log("Player does not exist - making it happen");
             this.player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
             this.setAudioPlayerListeners();
         }
 
-        console.log("Subscribing connection to player");
         this.connection.subscribe(this.player);
         await this.skip();
     }
@@ -144,7 +125,6 @@ export default class VoiceService {
         const skipped: Track | undefined = this.nowPlaying;
         this.nowPlaying = this.tracks.shift();
         if (this.nowPlaying) {
-            console.log(`Now playing: ${this.nowPlaying.info}`);
             this.player.play(await this.nowPlaying.resource());
             await this.client.messageService.embedMessage(this.textChannelId!, await this.nowPlaying.playingEmbed());
         }
