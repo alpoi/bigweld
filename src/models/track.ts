@@ -225,7 +225,7 @@ export class SpotifyTrack extends Track {
             .setTimestamp()
             .setThumbnail(this.info.thumbnail?.url ?? null)
             .addFields(...fields)
-            .setDescription(`_Resolved to YouTube video ${resolvedVideoText}_`)
+            .setDescription(`_Resolved to YouTube video:\n${resolvedVideoText}_`)
     }
 
     public async shortEmbed(action: string, color: ColorResolvable): Promise<EmbedBuilder> {
