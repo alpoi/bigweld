@@ -41,20 +41,18 @@ client.eventService.setEvents([
 
 client.start().catch(console.error);
 
-async function death(signal: string) : Promise<void> {
-    console.log(`Received ${signal} signal - tidying up`)
-    try { client.voiceService.leave() } catch (error) { console.error(error) }
+
+function death(signal: string) : Promise<void> {
+    console.log(`Received ${signal} signal - tidying up`);
+
     try {
-        if (client.voiceService.textChannelId) {
-            await client.messageService.errorEmbedMessage(
-                client.voiceService.textChannelId,
-                `Bigweld received a ${signal} signal and promptly vanished`
-            );
-        }
+        client.voiceService.leave();
+        client.destroy().then(() => console.log("Client successfully destroyed")).catch(console.error);
     } catch (error) {
-        console.error(error)
+        console.error(error);
     }
-    try { await client.destroy() } catch (error) { console.error(error) }
+
+    process.exit(0);
 }
 
 process.on('SIGINT', () => death('SIGINT'));
