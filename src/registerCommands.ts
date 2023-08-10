@@ -1,4 +1,4 @@
-import { guildId } from "./config.json";
+import { discordGuildId } from "./config.json";
 import BigweldClient from "./client";
 
 import Join from "./commands/join";
@@ -12,7 +12,7 @@ import Play from "./commands/play";
 import Unpause from "./commands/unpause";
 import Skip from "./commands/skip";
 
-const client: BigweldClient = new BigweldClient(guildId);
+const client: BigweldClient = new BigweldClient(discordGuildId);
 
 client.commandService.setCommands([
     Clear,
@@ -27,4 +27,4 @@ client.commandService.setCommands([
     Validate,
 ]);
 
-client.commandService.registerCommands(guildId).catch(console.error);
+client.commandService.registerCommands(discordGuildId).catch(console.error);

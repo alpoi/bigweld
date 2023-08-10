@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits } from "discord.js";
 import { is_expired, refreshToken, setToken } from "play-dl";
 import {
-    token,
+    discordToken,
     spotifyClientId,
     spotifyClientSecret,
     spotifyMarket,
@@ -45,6 +45,6 @@ export default class BigweldClient extends Client {
             }
         });
         if (is_expired()) await refreshToken();
-        this.login(token).catch(console.error).then(() : void => { this.avatarUrl = this.user!.displayAvatarURL() });
+        this.login(discordToken).catch(console.error).then(() : void => { this.avatarUrl = this.user!.displayAvatarURL() });
     }
 }

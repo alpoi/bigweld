@@ -1,5 +1,5 @@
 import BigweldClient from "./client";
-import { guildId } from "./config.json";
+import { discordGuildId } from "./config.json";
 
 import Validate from "./commands/validate";
 import Unpause from "./commands/unpause";
@@ -16,7 +16,7 @@ import ClientReady from "./events/clientReady";
 import InteractionCreate from "./events/interactionCreate";
 import VoiceStateUpdate from "./events/voiceStateUpdate";
 
-const client: BigweldClient = new BigweldClient(guildId);
+const client: BigweldClient = new BigweldClient(discordGuildId);
 
 
 client.commandService.setCommands([

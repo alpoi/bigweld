@@ -7,7 +7,6 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
 
     if (client.voiceService.channelId && client.voiceService.connection) {
         await client.voiceService.leave();
-        await client.messageService.rawReply(interaction, "Bye bye o/", false);
     } else {
         await client.messageService.rawReply(interaction, "Bigweld is not here", false);
     }

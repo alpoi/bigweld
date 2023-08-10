@@ -1,4 +1,4 @@
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import Command from "../models/command";
 import BigweldClient from "../client";
 

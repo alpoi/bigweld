@@ -1,5 +1,5 @@
 import BigweldClient from "../client";
-import {ChatInputCommandInteraction, GuildMember, SlashCommandBuilder} from "discord.js";
+import { ChatInputCommandInteraction, GuildMember, SlashCommandBuilder } from "discord.js";
 import Command from "../models/command";
 
 const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
