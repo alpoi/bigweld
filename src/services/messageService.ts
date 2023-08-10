@@ -20,6 +20,11 @@ export default class MessageService {
         await this.interactionReply(interaction, { content, ephemeral });
     }
 
+    public async rawMessage(channelId: string, content: string) : Promise<void> {
+        const channel: Channel | null = await this.client.channels.fetch(channelId);
+        if (channel && channel.isTextBased()) await channel.send({ content: content });
+    }
+
     public async embedReply(interaction: ChatInputCommandInteraction, embed: EmbedBuilder, ephemeral: boolean = false) : Promise<void> {
         await this.interactionReply(interaction, { embeds: [embed], ephemeral });
     }

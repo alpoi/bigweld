@@ -3,13 +3,13 @@ import BigweldClient from "../client";
 import Command from "../models/command";
 
 const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
-    await client.messageService.deferReply(interaction, true);
+    await client.messageService.deferReply(interaction, false);
 
     if (client.voiceService.channelId && client.voiceService.connection) {
         await client.voiceService.leave();
         await client.messageService.rawReply(interaction, "Bye bye o/", false);
     } else {
-        await client.messageService.rawReply(interaction, "Bigweld is not here", true);
+        await client.messageService.rawReply(interaction, "Bigweld is not here", false);
     }
 }
 

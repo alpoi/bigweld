@@ -65,19 +65,32 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     } else if (queryType == QueryType.SpotifyPlaylist) {
 
         const playlist: SpotifyPlaylist = await spotify(queryString) as SpotifyPlaylist;
-        tracks = (await playlist.all_tracks()).map((info: SpotifyInfo) => new SpotifyTrack(info, member, client, queryString));
+        tracks = await Promise.all(
+            (await playlist.all_tracks()).map(
+                async (info: SpotifyInfo): Promise<SpotifyTrack> => {
+                    const youTubeVideo: YouTubeVideo | undefined = await SpotifyTrack.searchYouTube(info);
+                    return new SpotifyTrack(info, member, client, queryString, youTubeVideo);
+            })
+        );
         response = `Queued ${tracks.length} songs from a spotify playlist`; // TODO make embed
 
     } else if (queryType == QueryType.SpotifyAlbum) {
 
         const album: SpotifyAlbum = await spotify(queryString) as SpotifyAlbum;
-        tracks = (await album.all_tracks()).map((info: SpotifyInfo) => new SpotifyTrack(info, member, client, queryString));
+        tracks = await Promise.all(
+            (await album.all_tracks()).map(
+                async (info: SpotifyInfo): Promise<SpotifyTrack> => {
+                    const youTubeVideo: YouTubeVideo | undefined = await SpotifyTrack.searchYouTube(info);
+                    return new SpotifyTrack(info, member, client, queryString, youTubeVideo);
+                })
+        );
         response = `Queued ${tracks.length} songs from a spotify album`; // TODO make embed
 
     } else if (queryType == QueryType.SpotifyTrack) {
 
         const info: SpotifyInfo = await spotify(queryString) as SpotifyInfo;
-        const track: SpotifyTrack = new SpotifyTrack(info, member, client, queryString);
+        const youTubeVideo: YouTubeVideo | undefined = await SpotifyTrack.searchYouTube(info);
+        const track: SpotifyTrack = new SpotifyTrack(info, member, client, queryString, youTubeVideo);
         tracks = [ track ];
         response = await track.enqueuedEmbed(client.voiceService.tracks.length);
 

@@ -4,7 +4,7 @@ import Command from "../models/command";
 
 
 const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
-    await client.messageService.deferReply(interaction, true);
+    await client.messageService.deferReply(interaction, false);
     const member: GuildMember = interaction.member as GuildMember;
 
     if (!client.voiceService.memberConnectedWithBigweld(member)) {
@@ -14,9 +14,9 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
 
     // TODO extract into embed builder
     if (!client.voiceService.nowPlaying) {
-        await client.messageService.rawReply(interaction, "There is nothing to unpause", true);
+        await client.messageService.rawReply(interaction, "There is nothing to unpause", false);
     } else if (!client.voiceService.isPaused()) {
-        await client.messageService.rawReply(interaction, "The music is not paused", true);
+        await client.messageService.rawReply(interaction, "The music is not paused", false);
     } else {
         await client.voiceService.unpause();
         await client.messageService.rawReply(interaction, "The music has been unpaused", false);

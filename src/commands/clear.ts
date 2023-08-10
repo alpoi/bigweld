@@ -3,7 +3,7 @@ import {ChatInputCommandInteraction, GuildMember, SlashCommandBuilder} from "dis
 import Command from "../models/command";
 
 const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
-    await client.messageService.deferReply(interaction, true);
+    await client.messageService.deferReply(interaction, false);
     const member: GuildMember = interaction.member as GuildMember;
 
     if (!client.voiceService.memberConnectedWithBigweld(member)) {

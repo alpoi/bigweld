@@ -1,13 +1,12 @@
 import { AudioResource, createAudioResource } from "@discordjs/voice";
 import {
-    search,
     stream,
     stream_from_info,
     InfoData as YouTubeInfo,
     SoundCloudTrack as SoundCloudInfo,
     SpotifyTrack as SpotifyInfo,
     YouTubeStream,
-    SoundCloudStream, YouTubeVideo
+    SoundCloudStream, YouTubeVideo, search
 } from "play-dl";
 import { APIEmbedField } from "discord-api-types/v10";
 import { ColorResolvable, Colors, EmbedBuilder, GuildMember } from "discord.js";
@@ -170,22 +169,26 @@ export class SoundCloudTrack extends Track {
 
 export class SpotifyTrack extends Track {
     public info: SpotifyInfo;
+    public youTubeVideo?: YouTubeVideo
 
-    constructor(info: SpotifyInfo, requester: GuildMember, client: BigweldClient, originalQuery?: string) {
+    constructor(info: SpotifyInfo, requester: GuildMember, client: BigweldClient, originalQuery?: string, youTubeVideo?: YouTubeVideo) {
         super(requester, client, originalQuery);
         this.info = info;
+        this.youTubeVideo = youTubeVideo;
+    }
+
+    public static async searchYouTube(info: SpotifyInfo) : Promise<YouTubeVideo | undefined> {
+        let searchString: string = `${info.name}`;
+        const firstArtist = info.artists[0];
+        if (firstArtist) searchString += ` ${firstArtist.name}`;
+        const searched: YouTubeVideo[] = await search(searchString, {limit: 1});
+        return searched[0];
     }
 
     public async resource(): Promise<AudioResource> {
-        let searchString: string = `${this.info.name}`;
-        const firstArtist = this.info.artists.shift();
-        if (firstArtist) searchString += ` ${firstArtist.name}`;
-        const searched: YouTubeVideo[] = await search(searchString, {limit: 1});
-        if (searched[0] === undefined) {
-            throw new PlaybackError(this.info, "Could not find YouTube equivalent for Spotify track");
-        }
+        if (!this.youTubeVideo) throw new PlaybackError(this.info, "Could not find YouTube equivalent for Spotify track");
         try {
-            const youtubeStream: YouTubeStream = await stream(searched[0].url) as YouTubeStream;
+            const youtubeStream: YouTubeStream = await stream(this.youTubeVideo.url) as YouTubeStream;
             return createAudioResource(youtubeStream.stream, {inputType: youtubeStream.type})
         } catch (error) {
             console.error(error);
@@ -210,6 +213,9 @@ export class SpotifyTrack extends Track {
         if (position) fields.push({name: "Position", value: `${position}`, inline: true});
         if (this.originalQuery) fields.push({ name: "Query", value: this.originalQuery });
 
+        const resolvedVideoText: string = `[${this.youTubeVideo?.title}](${this.youTubeVideo?.url})`
+            .replace("_", "\\_");
+
         return new EmbedBuilder()
             .setAuthor({name: action, iconURL: this.client.avatarUrl})
             .setColor(color)
@@ -218,7 +224,8 @@ export class SpotifyTrack extends Track {
             .setFooter({text: this.requester.user.tag, iconURL: this.requester.user.displayAvatarURL()})
             .setTimestamp()
             .setThumbnail(this.info.thumbnail?.url ?? null)
-            .addFields(...fields);
+            .addFields(...fields)
+            .setDescription(`_Resolved to YouTube video ${resolvedVideoText}_`)
     }
 
     public async shortEmbed(action: string, color: ColorResolvable): Promise<EmbedBuilder> {

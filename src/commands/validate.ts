@@ -5,7 +5,7 @@ import BigweldClient from "../client";
 
 
 const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
-    await client.messageService.deferReply(interaction, true);
+    await client.messageService.deferReply(interaction, false);
     const queryString: string | null = interaction.options.getString('query');
     if (queryString) {
         const res: boolean | string = await validate(queryString)
