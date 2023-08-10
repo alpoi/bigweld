@@ -111,30 +111,14 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
 
     } else {
         await client.messageService.errorMessage(interaction);
-        console.error(`Unexpected query type: ${queryType}`);
         return;
     }
 
-    console.log("Tracks to queue");
-    console.log(tracks);
-
-    console.log("Tracks pre-queue");
-    console.log(client.voiceService.tracks);
-
-    console.log(`Queueing ${tracks.length} tracks`);
     await client.voiceService.enqueue(tracks);
-    console.log("Tracks post-queue");
-    console.log(client.voiceService.tracks);
 
     if (!client.voiceService.nowPlaying) {
-        console.log("Player is idle so we are skipping to the track");
         await client.voiceService.skip();
 
-        console.log("Tracks post-skip");
-        console.log(client.voiceService.tracks);
-
-        console.log("Now playing post-skip");
-        console.log(client.voiceService.nowPlaying);
     }
 
     if (response instanceof EmbedBuilder) {
