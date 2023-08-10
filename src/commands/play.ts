@@ -52,7 +52,7 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     if (queryType == QueryType.SoundCloudPlaylist) {
 
         const playlist: SoundCloudPlaylist = await soundcloud(queryString) as SoundCloudPlaylist;
-        tracks = (await playlist.all_tracks()).map((info: SoundCloudInfo) => new SoundCloudTrack(info, member, client));
+        tracks = (await playlist.all_tracks()).map((info: SoundCloudInfo) => new SoundCloudTrack(info, member, client, queryString));
         response = `Queued ${tracks.length} songs from a soundcloud playlist`; // TODO make embed
 
     } else if (queryType == QueryType.SoundCloudTrack) {
@@ -65,19 +65,19 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     } else if (queryType == QueryType.SpotifyPlaylist) {
 
         const playlist: SpotifyPlaylist = await spotify(queryString) as SpotifyPlaylist;
-        tracks = (await playlist.all_tracks()).map((info: SpotifyInfo) => new SpotifyTrack(info, member, client));
+        tracks = (await playlist.all_tracks()).map((info: SpotifyInfo) => new SpotifyTrack(info, member, client, queryString));
         response = `Queued ${tracks.length} songs from a spotify playlist`; // TODO make embed
 
     } else if (queryType == QueryType.SpotifyAlbum) {
 
         const album: SpotifyAlbum = await spotify(queryString) as SpotifyAlbum;
-        tracks = (await album.all_tracks()).map((info: SpotifyInfo) => new SpotifyTrack(info, member, client));
+        tracks = (await album.all_tracks()).map((info: SpotifyInfo) => new SpotifyTrack(info, member, client, queryString));
         response = `Queued ${tracks.length} songs from a spotify album`; // TODO make embed
 
     } else if (queryType == QueryType.SpotifyTrack) {
 
         const info: SpotifyInfo = await spotify(queryString) as SpotifyInfo;
-        const track: SpotifyTrack = new SpotifyTrack(info, member, client);
+        const track: SpotifyTrack = new SpotifyTrack(info, member, client, queryString);
         tracks = [ track ];
         response = await track.enqueuedEmbed(client.voiceService.tracks.length);
 
@@ -86,13 +86,13 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
         const playlist: YouTubePlayList = await playlist_info(queryString, { incomplete: true }) as YouTubePlayList;
         const videos: YouTubeVideo[] = await playlist.all_videos();
         tracks = (await Promise.all(videos.map(async (video: YouTubeVideo): Promise<YouTubeInfo> => video_info(video.url))))
-            .map((info: YouTubeInfo) => new YouTubeTrack(info, member, client));
+            .map((info: YouTubeInfo) => new YouTubeTrack(info, member, client, queryString));
         response = `Queued ${tracks.length} songs from a youtube playlist`; // TODO make embed
 
     } else if (queryType == QueryType.YouTubeVideo) {
 
         const info: YouTubeInfo = await video_info(queryString) as YouTubeInfo;
-        const track: YouTubeTrack = new YouTubeTrack(info, member, client);
+        const track: YouTubeTrack = new YouTubeTrack(info, member, client, queryString);
         tracks = [ track ];
         response = await track.enqueuedEmbed(client.voiceService.tracks.length);
 
@@ -105,7 +105,7 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
             return;
         }
         const info: YouTubeInfo = await video_info(video.url);
-        const track: YouTubeTrack = new YouTubeTrack(info, member, client);
+        const track: YouTubeTrack = new YouTubeTrack(info, member, client, queryString);
         tracks = [ track ];
         response = await track.enqueuedEmbed(client.voiceService.tracks.length);
 

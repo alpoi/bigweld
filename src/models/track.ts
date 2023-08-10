@@ -34,7 +34,7 @@ export default abstract class Track {
     abstract shortEmbed(action: string, color: ColorResolvable) : Promise<EmbedBuilder>;
     abstract info: any;
 
-    protected constructor(public requester: GuildMember, public client: BigweldClient) {}
+    protected constructor(public requester: GuildMember, public client: BigweldClient, public originalQuery?: string) {}
 
     public async enqueuedEmbed(position: number) : Promise<EmbedBuilder> {
         return this.detailedEmbed("Added to queue", Colors.Blurple, position);
@@ -56,8 +56,8 @@ export default abstract class Track {
 export class YouTubeTrack extends Track {
     public info: YouTubeInfo;
 
-    constructor(info: YouTubeInfo, requester: GuildMember, client: BigweldClient) {
-        super(requester, client)
+    constructor(info: YouTubeInfo, requester: GuildMember, client: BigweldClient, originalQuery?: string) {
+        super(requester, client, originalQuery)
         this.info = info;
     }
 
@@ -87,6 +87,7 @@ export class YouTubeTrack extends Track {
         ];
 
         if (position) fields.push({ name: "Position", value: `${position}`, inline: true });
+        if (this.originalQuery) fields.push({ name: "Query", value: this.originalQuery });
 
         return new EmbedBuilder()
             .setAuthor({ name: action, iconURL: this.client.avatarUrl })
@@ -114,8 +115,8 @@ export class YouTubeTrack extends Track {
 export class SoundCloudTrack extends Track {
     public info: SoundCloudInfo
 
-    constructor(info: SoundCloudInfo, requester: GuildMember, client: BigweldClient) {
-        super(requester, client);
+    constructor(info: SoundCloudInfo, requester: GuildMember, client: BigweldClient, originalQuery?: string) {
+        super(requester, client, originalQuery);
         this.info = info
     }
 
@@ -144,6 +145,7 @@ export class SoundCloudTrack extends Track {
         ];
 
         if (position) fields.push({ name: "Position", value: `${position}`, inline: true });
+        if (this.originalQuery) fields.push({ name: "Query", value: this.originalQuery });
 
         return new EmbedBuilder()
             .setAuthor({ name: action, iconURL: this.client.avatarUrl })
@@ -169,8 +171,8 @@ export class SoundCloudTrack extends Track {
 export class SpotifyTrack extends Track {
     public info: SpotifyInfo;
 
-    constructor(info: SpotifyInfo, requester: GuildMember, client: BigweldClient) {
-        super(requester, client);
+    constructor(info: SpotifyInfo, requester: GuildMember, client: BigweldClient, originalQuery?: string) {
+        super(requester, client, originalQuery);
         this.info = info;
     }
 
@@ -203,6 +205,7 @@ export class SpotifyTrack extends Track {
         ];
 
         if (position) fields.push({name: "Position", value: `${position}`, inline: true});
+        if (this.originalQuery) fields.push({ name: "Query", value: this.originalQuery });
 
         return new EmbedBuilder()
             .setAuthor({name: action, iconURL: this.client.avatarUrl})
