@@ -14,12 +14,12 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
 
     // TODO extract into embed builder
     if (!client.voiceService.nowPlaying) {
-        await client.messageService.rawReply(interaction, "There is nothing to unpause", false);
+        await client.messageService.errorEmbedReply(interaction, "There is nothing to unpause", false);
     } else if (!client.voiceService.isPaused()) {
-        await client.messageService.rawReply(interaction, "The music is not paused", false);
+        await client.messageService.errorEmbedReply(interaction, "The music is not paused", false);
     } else {
-        await client.voiceService.unpause();
-        await client.messageService.rawReply(interaction, "The music has been unpaused", false);
+        client.voiceService.unpause();
+        await client.messageService.successEmbedReply(interaction, "The music has been unpaused", false);
     }
 }
 

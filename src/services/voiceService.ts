@@ -18,7 +18,7 @@ import Track from "../models/track";
 export default class VoiceService {
     public client: BigweldClient;
     public tracks: Track[] = [];
-    public player: AudioPlayer;
+    public player?: AudioPlayer;
     public playerState: AudioPlayerStatus = AudioPlayerStatus.Idle;
     public connection?: VoiceConnection;
     public channelId?: string;
@@ -32,7 +32,7 @@ export default class VoiceService {
     }
 
     public memberConnectedWithBigweld(member: GuildMember) : boolean {
-        return member.voice.channelId !== null && member.voice.channelId === this.channelId;
+        return !!member.voice.channelId && member.voice.channelId === this.channelId;
     }
 
     public isPaused() : boolean {
@@ -44,7 +44,7 @@ export default class VoiceService {
         this.player?.on(AudioPlayerStatus.Buffering, () => this.playerState = AudioPlayerStatus.Buffering);
         this.player?.on(AudioPlayerStatus.AutoPaused, () => this.playerState = AudioPlayerStatus.AutoPaused);
         this.player?.on(AudioPlayerStatus.Playing, () => this.playerState = AudioPlayerStatus.Playing);
-        this.player?.on(AudioPlayerStatus.Idle,async () : Promise<void> => {
+        this.player?.on(AudioPlayerStatus.Idle, async () : Promise<void> => {
             this.playerState = AudioPlayerStatus.Idle;
             if (is_expired()) await refreshToken();
             await this.skip();
@@ -53,23 +53,22 @@ export default class VoiceService {
     }
 
     public setVoiceConnectionListeners() : void {
-        this.connection?.on(VoiceConnectionStatus.Disconnected, async () => {
+        this.connection?.on(VoiceConnectionStatus.Disconnected, async () : Promise<void> => {
+            let handled: boolean = false;
             await Promise.race([
                 entersState(this.connection!, VoiceConnectionStatus.Signalling, 5_000),
                 entersState(this.connection!, VoiceConnectionStatus.Connecting, 5_000)
             ]).catch((error): void => {
-                console.error(error);
-                this.connection?.destroy();
+                if (!handled) {
+                    console.error(error);
+                    this.leave();
+                    handled = true;
+                }
             })
         })
     }
 
-    public async join(channel: VoiceChannel) : Promise<void> {
-        if (this.channelId && this.connection) {
-            this.connection.destroy();
-            this.connection = undefined;
-        }
-
+    public join(channel: VoiceChannel) : void {
         this.channelId = channel.id;
         this.connection = joinVoiceChannel({
             channelId: channel.id,
@@ -84,24 +83,26 @@ export default class VoiceService {
         }
 
         this.connection.subscribe(this.player);
-        await this.skip();
     }
 
-    public async leave() : Promise<void> {
-        this.connection?.destroy();
+    public leave() : void {
+        try { this.connection?.destroy() } catch {}
+        try { this.player?.stop() } catch {}
+
+        this.playerState = AudioPlayerStatus.Idle;
+        this.player = undefined;
         this.connection = undefined;
         this.channelId = undefined;
         this.nowPlaying = undefined;
         this.tracks = [];
-        this.player.stop();
     }
 
-    public async pause() : Promise<boolean> {
-        return this.player.pause(true);
+    public pause() : boolean | undefined {
+        return this.player?.pause(true);
     }
 
-    public async unpause() : Promise<boolean> {
-        return this.player.unpause();
+    public unpause() : boolean | undefined {
+        return this.player?.unpause();
     }
 
     public async enqueue(tracks: Track[]) : Promise<Track | undefined> {
@@ -125,7 +126,7 @@ export default class VoiceService {
         const skipped: Track | undefined = this.nowPlaying;
         this.nowPlaying = this.tracks.shift();
         if (this.nowPlaying) {
-            this.player.play(await this.nowPlaying.resource());
+            this.player?.play(await this.nowPlaying.resource());
             await this.client.messageService.embedMessage(this.textChannelId!, await this.nowPlaying.playingEmbed());
         }
         return skipped;

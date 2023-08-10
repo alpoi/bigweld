@@ -18,7 +18,7 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
         const skippedEmbed: EmbedBuilder = await skipped.skippedEmbed();
         await client.messageService.embedReply(interaction, skippedEmbed);
     } else {
-        await client.messageService.rawReply(interaction, "There is nothing to skip", true);
+        await client.messageService.errorEmbedReply(interaction, "There is nothing to skip", true);
     }
 }
 

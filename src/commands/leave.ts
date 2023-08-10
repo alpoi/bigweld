@@ -6,9 +6,10 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     await client.messageService.deferReply(interaction, false);
 
     if (client.voiceService.channelId && client.voiceService.connection) {
-        await client.voiceService.leave();
+        client.voiceService.leave();
+        await client.messageService.leaveReply(interaction);
     } else {
-        await client.messageService.rawReply(interaction, "Bigweld is not here", false);
+        await client.messageService.errorEmbedReply(interaction, "Bigweld is not here", false);
     }
 }
 

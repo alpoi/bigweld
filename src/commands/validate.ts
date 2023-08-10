@@ -9,9 +9,9 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     const queryString: string | null = interaction.options.getString('query');
     if (queryString) {
         const res: boolean | string = await validate(queryString)
-        await client.messageService.rawReply(interaction, res.toString());
+        await client.messageService.successEmbedReply(interaction, res.toString());
     } else {
-        await client.messageService.errorMessage(interaction);
+        await client.messageService.unexpectedErrorReply(interaction);
     }
 }
 

@@ -14,12 +14,12 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
 
     // TODO extract into embed builder
     if (!client.voiceService.nowPlaying) {
-        await client.messageService.rawReply(interaction, "You cannot pause the voices inside your head", true);
+        await client.messageService.errorEmbedReply(interaction, "You cannot pause the voices inside your head", true);
     } else if (client.voiceService.isPaused()) {
-        await client.messageService.rawReply(interaction, "The music is already paused", true);
+        await client.messageService.errorEmbedReply(interaction, "The music is already paused", true);
     } else {
-        await client.voiceService.pause();
-        await client.messageService.rawReply(interaction, "The music is now paused", false);
+        client.voiceService.pause();
+        await client.messageService.neutralEmbedReply(interaction, "The music is now paused", false);
     }
 }
 

@@ -12,7 +12,7 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     }
 
     const tracksCleared: number = await client.voiceService.clear();
-    await client.messageService.rawReply(interaction, `Cleared ${tracksCleared} tracks`, false);
+    await client.messageService.neutralEmbedReply(interaction, `Cleared ${tracksCleared} tracks`, false);
 }
 
 const builder: SlashCommandBuilder = new SlashCommandBuilder()

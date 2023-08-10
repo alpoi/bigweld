@@ -12,11 +12,11 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
 
     // TODO extract into embed builder
     if (tracks && nowPlaying) {
-        await client.messageService.rawReply(interaction, `something playing, something queued, paused? ${paused}`, false);
+        await client.messageService.neutralEmbedReply(interaction, `something playing, something queued, paused? ${paused}`, false);
     } else if (nowPlaying) {
-        await client.messageService.rawReply(interaction, `something playing, nothing queued, paused? ${paused}`, false);
+        await client.messageService.neutralEmbedReply(interaction, `something playing, nothing queued, paused? ${paused}`, false);
     } else {
-        await client.messageService.rawReply(interaction, 'nothing playing', false);
+        await client.messageService.neutralEmbedReply(interaction, 'nothing playing', false);
     }
 }
 

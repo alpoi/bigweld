@@ -26,9 +26,8 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     const channel: VoiceChannel | null = member.voice.channel as VoiceChannel | null;
 
     if (!client.voiceService.channelId && channel) {
-        console.log("Not in a channel, but caller is - joining them");
         client.voiceService.textChannelId = interaction.channelId;
-        await client.voiceService.join(channel);
+        client.voiceService.join(channel);
     }
 
     if (!client.voiceService.memberConnectedWithBigweld(member)) {
@@ -39,7 +38,7 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     const queryString: string | null = interaction.options.getString('query');
 
     if (queryString === null) {
-        await client.messageService.errorMessage(interaction);
+        await client.messageService.unexpectedErrorReply(interaction);
         console.error("Query string was null");
         return;
     }
@@ -114,7 +113,7 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
         const videos: YouTubeVideo[] = await search(queryString, { source: { youtube: "video" }, limit: 1 });
         const video: YouTubeVideo | undefined = videos.pop();
         if (!video) {
-            await client.messageService.rawReply(interaction, `Could not find track from "${queryString}"`, false);
+            await client.messageService.errorEmbedReply(interaction, `Could not find track from "${queryString}"`, false);
             return;
         }
         const info: YouTubeInfo = await video_info(video.url);
@@ -123,21 +122,20 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
         response = await track.enqueuedEmbed(client.voiceService.tracks.length);
 
     } else {
-        await client.messageService.errorMessage(interaction);
+        await client.messageService.unexpectedErrorReply(interaction);
         return;
     }
 
     await client.voiceService.enqueue(tracks);
 
-    if (!client.voiceService.nowPlaying) {
+    if (!client.voiceService.nowPlaying && !client.voiceService.isPaused()) {
         await client.voiceService.skip();
-
     }
 
     if (response instanceof EmbedBuilder) {
         await client.messageService.embedReply(interaction, response);
     } else { // TODO phase this out when all embeds are built
-        await client.messageService.rawReply(interaction, response, false);
+        await client.messageService.neutralEmbedReply(interaction, response);
     }
 }
 

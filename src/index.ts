@@ -16,6 +16,7 @@ import ClientReady from "./events/clientReady";
 import InteractionCreate from "./events/interactionCreate";
 import VoiceStateUpdate from "./events/voiceStateUpdate";
 
+
 const client: BigweldClient = new BigweldClient(discordGuildId);
 
 
@@ -39,3 +40,23 @@ client.eventService.setEvents([
 ]);
 
 client.start().catch(console.error);
+
+async function death(signal: string) : Promise<void> {
+    console.log(`Received ${signal} signal - tidying up`)
+    try { client.voiceService.leave() } catch (error) { console.error(error) }
+    try {
+        if (client.voiceService.textChannelId) {
+            await client.messageService.errorEmbedMessage(
+                client.voiceService.textChannelId,
+                `Bigweld received a ${signal} signal and promptly vanished`
+            );
+        }
+    } catch (error) {
+        console.error(error)
+    }
+    try { await client.destroy() } catch (error) { console.error(error) }
+}
+
+process.on('SIGINT', () => death('SIGINT'));
+process.on('SIGTERM', () => death('SIGTERM'));
+process.on('SIGKILL', () => death('SIGKILL'));

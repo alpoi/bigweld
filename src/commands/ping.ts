@@ -4,7 +4,7 @@ import BigweldClient from "../client";
 
 const handler = (client: BigweldClient) => async (interaction: ChatInputCommandInteraction) : Promise<void> => {
     await client.messageService.deferReply(interaction);
-    await client.messageService.rawReply(interaction, "pong");
+    await client.messageService.successEmbedReply(interaction, "pong");
 }
 
 const builder: SlashCommandBuilder = new SlashCommandBuilder()

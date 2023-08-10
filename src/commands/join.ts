@@ -7,12 +7,15 @@ const handler = (client: BigweldClient) => async (interaction: ChatInputCommandI
     await client.messageService.deferReply(interaction, false);
     const member: GuildMember = interaction.member as GuildMember;
     const channel: VoiceChannel | null = member.voice.channel as VoiceChannel;
-    if (channel) {
+
+    if (client.voiceService.memberConnectedWithBigweld(member)) {
+        await client.messageService.errorEmbedReply(interaction, "Bigweld is already here");
+    } else if (channel) {
         client.voiceService.textChannelId = interaction.channelId;
-        await client.voiceService.join(channel);
-        await client.messageService.rawReply(interaction, "Bigweld has arrived", false);
+        client.voiceService.join(channel);
+        await client.messageService.joinReply(interaction);
     } else {
-        await client.messageService.rawReply(interaction, "You must join a channel first", true);
+        await client.messageService.errorEmbedReply(interaction, "You must join a channel first");
     }
 }
 

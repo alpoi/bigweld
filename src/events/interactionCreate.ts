@@ -19,7 +19,7 @@ const interactionCreateHandler = (client: BigweldClient) => async (interaction: 
         await command.execute(interaction);
     } catch (error) {
         console.error(error);
-        await client.messageService.errorMessage(interaction);
+        await client.messageService.unexpectedErrorReply(interaction);
     }
 };
 
