@@ -177,7 +177,10 @@ export class SpotifyTrack extends Track {
     }
 
     public async resource(): Promise<AudioResource> {
-        const searched: YouTubeVideo[] = await search(this.info.name, {limit: 1});
+        let searchString: string = `${this.info.name}`;
+        const firstArtist = this.info.artists.shift();
+        if (firstArtist) searchString += ` ${firstArtist.name}`;
+        const searched: YouTubeVideo[] = await search(searchString, {limit: 1});
         if (searched[0] === undefined) {
             throw new PlaybackError(this.info, "Could not find YouTube equivalent for Spotify track");
         }

@@ -41,9 +41,7 @@ client.eventService.setEvents([
 client.start().catch(console.error);
 
 /* TODO
- *  - put the original query in the embed
  *  - fix it so it doesn't skip everytime /play is invoked
  *  - fix it so it doesn't give the "bigweld can't hear you" error on /skip
  *  - fix the voiceStateUpdate event handler
- *  - search on title + artist rather than just title for spotify -> youtube
  */
