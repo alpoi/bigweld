@@ -1,4 +1,12 @@
 {
+  "name": "bigweld",
+  "version": "1.0.0",
+  "author": "alpoi",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "register": "node dist/registerCommands.js"
+  },
   "devDependencies": {
     "eslint": "^8.46.0",
     "typescript": "^5.1.6"
@@ -8,11 +16,5 @@
     "discord.js": "^14.12.1",
     "play-dl": "^1.9.6",
     "libsodium-wrappers": "^0.7.11"
-  },
-  "main": "dist/index.js",
-  "scripts": {
-    "start": "node .",
-    "build": "npm install && npx tsc",
-    "register": "node dist/registerCommands.js"
   }
 }

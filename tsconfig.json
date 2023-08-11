@@ -5,7 +5,7 @@
     "moduleResolution": "nodenext",
     "baseUrl": "./",
     "paths": {
-      "tests/*": ["./src/tests/*"] // I promise I will write some of these
+      "tests/*": ["./src/tests/*"] // I promise I will write some of these eventually
     },
     "moduleSuffixes": [""],
     "resolveJsonModule": true,

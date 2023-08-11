@@ -56,5 +56,3 @@ function death(signal: string) : Promise<void> {
 }
 
 process.on('SIGINT', () => death('SIGINT'));
-process.on('SIGTERM', () => death('SIGTERM'));
-process.on('SIGKILL', () => death('SIGKILL'));
