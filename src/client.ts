@@ -6,8 +6,7 @@ import {
     spotifyClientSecret,
     spotifyMarket,
     spotifyRefreshToken,
-    soundCloudClientId,
-    youTubeCookie
+    soundCloudClientId
 } from "./config.json";
 import CommandService from "./services/commandService";
 import VoiceService from "./services/voiceService";
@@ -34,7 +33,6 @@ export default class BigweldClient extends Client {
     }
 
     async start() {
-        await setToken({ youtube: { cookie: youTubeCookie } } );
         await setToken({ soundcloud: { client_id: soundCloudClientId }});
         await setToken({
             spotify : {

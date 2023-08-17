@@ -1,8 +1,8 @@
 // This is what your config.json file should look like
 // Follow the instructions here for most of these: https://github.com/play-dl/play-dl/tree/main/instructions
 {
-  "bigweldJoinGif": false, // a hosted .gif url or false
-  "bigweldLeaveGif": false, // a hosted .gif url or false
+  "bigweldJoinGif": false, // a hosted .gif url or false (I like https://tenor.com/bs4TS.gif)
+  "bigweldLeaveGif": false, // a hosted .gif url or false (I like https://tenor.com/bWPex.gif)
   "discordToken": "discord token goes here",
   "discordPublicKey": "discord public key goes here",
   "discordClientId": "discord client id goes here",
@@ -11,6 +11,5 @@
   "spotifyClientSecret": "spotify client secret goes here",
   "spotifyRefreshToken": "this can be anything as it will just get refreshed immediately",
   "spotifyMarket": "two letter spotify market code goes here",
-  "soundCloudClientId": "soundcloud client id goes here", // https://stackoverflow.com/a/54174507
-  "youTubeCookie": "youtube cookies string goes here"
+  "soundCloudClientId": "soundcloud client id goes here" // https://stackoverflow.com/a/54174507
 }
